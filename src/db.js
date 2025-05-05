@@ -10,6 +10,10 @@ const pool = new Pool({
   port: process.env.PGPORT,
   max: 10,               // limite de conexões
   idleTimeoutMillis: 30000,
+  ssl: {
+    // Para ambientes que usam certificado autoassinado:
+    rejectUnauthorized: false
+  }
 });
 
 module.exports = pool;

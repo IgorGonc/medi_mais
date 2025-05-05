@@ -1,84 +1,66 @@
 const express = require('express');
 const pool = require('../src/db'); 
 
-const router = express.Router();
+const usuariosRouter = express.Router();
 
-// 1) CREATE: inserir novo usuário
-router.post('/', async (req, res) => {
-  const { name, email } = req.body;
+// Listar todos
+usuariosRouter.get('/', async (req, res) => {
   try {
+    const result = await pool.query('SELECT * FROM usuarios');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Buscar por ID
+usuariosRouter.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Criar
+usuariosRouter.post('/', async (req, res) => {
+  try {
+    const { nome, email, senha_hash } = req.body;
     const result = await pool.query(
-      'INSERT INTO usuarios (nome_completo, data_nascimento, email, telefone, senha, medicamentos, contatos) VALUES ($1, $2) RETURNING *',
-      [name, email]
+      'INSERT INTO usuarios (nome, email, senha_hash) VALUES ($1, $2, $3) RETURNING *',
+      [nome, email, senha_hash]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message});
-  }
-});
-
-// 2) READ ALL: listar todos os usuários
-router.get('/', async (_req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM usuarios ORDER BY id');
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 3) READ ONE: obter usuário por id
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
+// Atualizar
+usuariosRouter.put('/:id', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM usuarios WHERE id = $1', [id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
+    const { id } = req.params;
+    const { nome, email, senha_hash } = req.body;
+    const result = await pool.query(
+      `UPDATE usuarios SET nome=$1, email=$2, senha_hash=$3 WHERE id=$4 RETURNING *`,
+      [nome, email, senha_hash, id]
+    );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 4) UPDATE: atualizar usuário
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, email } = req.body;
+// Deletar
+usuariosRouter.delete('/:id', async (req, res) => {
   try {
-    const result = await pool.query(
-      'UPDATE usuarios SET nome_completo = $1, email = $2 WHERE id = $3 RETURNING *',
-      [name, email, id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-    res.json(result.rows[0]);
+    const { id } = req.params;
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    res.status(204).send();
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
-
-// 5) DELETE: remover usuário
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(
-      'DELETE FROM usuarios WHERE id = $1 RETURNING *',
-      [id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-    res.json({ message: 'Usuário deletado', deleted: result.rows[0] });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-module.exports = router;
+module.exports = usuariosRouter

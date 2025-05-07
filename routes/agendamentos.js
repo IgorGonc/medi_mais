@@ -58,4 +58,4 @@ agendamentosRouter.delete('/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-module.exports = agendamentosRouter
+module.exports = agendamentosRouter;

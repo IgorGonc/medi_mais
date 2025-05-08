@@ -1,12 +1,13 @@
 const express = require('express');
-const usuariosRouter = require('../routes/usuario');  // note o caminho
+const usuariosRouter = require('../routes/usuario');
 const medicamentosRouter = require('../routes/medicamentos');
 const agendamentosRouter = require('../routes/agendamentos'); 
-const historicoRouter = require ('../routes/historico');
+const historicoRouter = require('../routes/historico');
 const app = express();
 
 app.use(express.json());
 
+// Rotas
 app.use('/usuarios', usuariosRouter);
 app.use('/medicamentos', medicamentosRouter);
 app.use('/agendamentos', agendamentosRouter);
